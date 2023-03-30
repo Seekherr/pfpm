@@ -59,7 +59,7 @@ class PfJob {
 			var_dump($neighbourScore < $node->getHeuristicScore($this->fromNode->getCoordinates(), $this->targetNode->getCoordinates()));
             if ($neighbourScore < $node->getHeuristicScore($this->fromNode->getCoordinates(), $this->targetNode->getCoordinates())) {
                 $neighbours[] = $neighbourNode;
-            }*/ // TODO: A* 
+            }*/ // TODO: A*
 			$neighbours[] = $neighbourNode;
         }
 
