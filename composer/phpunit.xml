@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<phpunit
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="phpunit.xsd"
+        bootstrap="../tests/autoload.php"
+        processIsolation="false"
+        enforceTimeLimit="true">
+    <coverage processUncoveredFiles="true">
+        <include>
+            <directory suffix=".php">await-generator</directory>
+        </include>
+    </coverage>
+    <testsuite name="pfpm">
+        <directory>../tests/Seeker/pfpm</directory>
+    </testsuite>
+</phpunit>

@@ -1,0 +1,262 @@
+Bismillah hir-rahman nir-rahim.
+
+##### Project Goals ! #####
+# The point of this project is to serve as a library for pathfinding, but also as a plugin for...
+well, no particular reason. Easier testing? I guess. (USE UNIT TESTS)
+
+# We need to allow as much flexibility as possible. So, goals:
+* Be fast, efficient and simple. (Of course...)
+* Allow full control over the code to the developer interacting via the API. I don't want 20
+different tasks secretly scheduled.
+* Allow flexibility. Flexibility includes:
+- Making the code compatible with Async/Sync. For example, instead of giving (or
+dependency injecting) the World class to the pathfinder.obj, give an array of `Node`s which would
+contain (e.g:) Block state and coordinates.
+- Allowing extensive debugging of what's going on behind-the-scenes, like allowing to get the
+currently resolved path at any point of the pathfinding.
+* Have some built-in, automatically configured easy-to-use pathfinding... things.
+* U n i t t e s t s.
+
+##### Implementation Details #####
+
+# What do we need for the pathfinding?
+* A score for each node. This can be manually provided, or automatically found using the block.
+* A 'from' node, and a 'to/target' node.
+* Every node to scan in-between, within a radius (so we don't scan the entire world and quickly
+fill up memory and cause other side effects).
+
+# From the API usage side, how could a developer find the optimal path to something?
+; Now, one thing to keep in mind here is that we won't always need an 'optimal' optimal path.
+For example, who would want their cool WitherBoss entity to start breaking glass blocks to reach
+a player just because it's faster? So, let's introduce modes; walk/jump-only mode and break-blocks
+-mode.
+
+; We also need settings. Sometimes, the developer knows how many blocks exactly they would want to
+search something. Maybe they have a set arena they want to pathfind in, and everything else
+outside that arena is void? So, let's introduce PfSettings. PfSettings would currently consist
+of:
+1. Radius; of getting the nodes. X/Y/Z
+2. PfMode; walk-jump-mode/break-blocks-mode
+2. ScoreRegistery; basically a register for storing the 'score' for each Block. Allow a
+`setTemplate(PfMode mode)` which basically configures it automatically based off of the mode.
+THIS REGISTER WILL NOT STORE ANYTHING PERMANENTLY AND MUST BE INSTANTIATED EVERYTIME.
+...
+So, based on that, we could do something like:
+PfJob job = (new Pathfinder(World, new PfSettings(
+  Radius::autoAdjust($from, $to),
+  PfMode::WALK_ONLY
+));
+Now, `job` is thread-safe, and so we can pass it anywhere to calculate the optimal path.
+...
+
+# How does Pathfinder calculate nodes for PfJob?
+* To make PfJob thread-safe, we need to keep it from interacting with the main thread. Because...
+well, we don't need to. So PfJob only accepts an array of `Node`s, which then using scores and
+such it calculates the optimal path for. The ONLY responsibility for PfJob is to calculate
+the optimal path using the *given* values. It will not generate anything new of its own or make
+any assumptions.
+
+* Now, the job of `Pathfinder` is to feed the `PfJob` with data. Let's look at what data `PfJob`
+needs: list of nodes, and preferably an explicit start/target node.
+The list of nodes is what will be browsed through to find the optimal path. And the job of
+`Pathfinder` is to find this very list of nodes. It will do this Insha'Allah by the optimal
+method; currently using an XYZ radius to iterate through the present coordinates, determine
+their score, create a `Node` object out of them and then proceed. But, complications can occur...
+
+* `PfNode`:
+- Coordinates (Vec3)
+- Score
+
+(30, 31, 31)=>(, (30, 30, 31), (30, 31, 30), (29, 31, 31))
+(30, 30, 31)=>(, (30, 30, 30), (29, 30, 31))
+(30, 30, 30)=>(, (29, 30, 30))
+(29, 30, 30)=>(, (29, 31, 30)]"
+
+(30, 31, 30)=>[(30, 30, 30), (30, 31, 31), (29, 31, 30)]
+(30, 30, 30)=>[(30, 30, 31), (29, 30, 30)]
+(30, 30, 31)=>[(29, 30, 31)]
+(29, 30, 31)=>[(29, 31, 31)
+
+object(Seeker\pfpm\pathfinding\node\PfNode)#361 (6) {
+  ["hash":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+  int(4227061)
+  ["coordinates":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+  object(pocketmine\math\Vector3)#362 (3) {
+    ["x"]=>
+    int(29)
+    ["y"]=>
+    int(30)
+    ["z"]=>
+    int(31)
+  }
+  ["score":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+  float(0.1)
+  ["neighbours":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+  array(1) {
+    [0]=>
+    object(Seeker\pfpm\pathfinding\node\PfNode)#359 (6) {
+      ["hash":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+      int(4227063)
+      ["coordinates":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+      object(pocketmine\math\Vector3)#358 (3) {
+        ["x"]=>
+        int(29)
+        ["y"]=>
+        int(31)
+        ["z"]=>
+        int(31)
+      }
+      ["score":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+      float(0.1)
+      ["neighbours":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+      array(0) {
+      }
+      ["parentNode":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+      NULL
+      ["heuristicScore":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+      NULL
+    }
+  }
+  ["parentNode":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+  object(Seeker\pfpm\pathfinding\node\PfNode)#367 (6) {
+    ["hash":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+    int(4227068)
+    ["coordinates":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+    object(pocketmine\math\Vector3)#366 (3) {
+      ["x"]=>
+      int(30)
+      ["y"]=>
+      int(30)
+      ["z"]=>
+      int(31)
+    }
+    ["score":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+    float(0.1)
+    ["neighbours":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+    array(1) {
+      [0]=>
+      *RECURSION*
+    }
+    ["parentNode":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+    object(Seeker\pfpm\pathfinding\node\PfNode)#373 (6) {
+      ["hash":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+      int(4227064)
+      ["coordinates":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+      object(pocketmine\math\Vector3)#374 (3) {
+        ["x"]=>
+        int(30)
+        ["y"]=>
+        int(30)
+        ["z"]=>
+        int(30)
+      }
+      ["score":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+      float(0.1)
+      ["neighbours":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+      array(2) {
+        [0]=>
+        *RECURSION*
+        [1]=>
+        object(Seeker\pfpm\pathfinding\node\PfNode)#364 (6) {
+          ["hash":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+          int(4227057)
+          ["coordinates":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+          object(pocketmine\math\Vector3)#365 (3) {
+            ["x"]=>
+            int(29)
+            ["y"]=>
+            int(30)
+            ["z"]=>
+            int(30)
+          }
+          ["score":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+          float(0.1)
+          ["neighbours":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+          array(0) {
+          }
+          ["parentNode":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+          NULL
+          ["heuristicScore":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+          NULL
+        }
+      }
+      ["parentNode":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+      object(Seeker\pfpm\pathfinding\node\PfNode)#378 (6) {
+        ["hash":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+        int(4227066)
+        ["coordinates":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+        object(pocketmine\math\Vector3)#380 (3) {
+          ["x"]=>
+          int(30)
+          ["y"]=>
+          int(31)
+          ["z"]=>
+          int(30)
+        }
+        ["score":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+        float(0.1)
+        ["neighbours":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+        array(3) {
+          [0]=>
+          *RECURSION*
+          [1]=>
+          object(Seeker\pfpm\pathfinding\node\PfNode)#371 (6) {
+            ["hash":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+            int(4227070)
+            ["coordinates":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+            object(pocketmine\math\Vector3)#372 (3) {
+              ["x"]=>
+              int(30)
+              ["y"]=>
+              int(31)
+              ["z"]=>
+              int(31)
+            }
+            ["score":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+            float(0.1)
+            ["neighbours":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+            array(0) {
+            }
+            ["parentNode":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+            NULL
+            ["heuristicScore":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+            NULL
+          }
+          [2]=>
+          object(Seeker\pfpm\pathfinding\node\PfNode)#369 (6) {
+            ["hash":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+            int(4227059)
+            ["coordinates":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+            object(pocketmine\math\Vector3)#370 (3) {
+              ["x"]=>
+              int(29)
+              ["y"]=>
+              int(31)
+              ["z"]=>
+              int(30)
+            }
+            ["score":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+            float(0.1)
+            ["neighbours":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+            array(0) {
+            }
+            ["parentNode":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+            NULL
+            ["heuristicScore":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+            NULL
+          }
+        }
+        ["parentNode":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+        NULL
+        ["heuristicScore":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+        NULL
+      }
+      ["heuristicScore":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+      float(3.514213562373095)
+    }
+    ["heuristicScore":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+    float(3.514213562373095)
+  }
+  ["heuristicScore":"Seeker\pfpm\pathfinding\node\PfNode":private]=>
+  float(2.8320508075688773)
+}

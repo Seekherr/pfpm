@@ -1,0 +1,8 @@
+name: pfpm
+main: Seeker\pfpm\PfPlugin
+version: 1.0.0
+api: 4.13.0
+author: Seeker
+description: "Basic pathfinding library for PM"
+
+# /home/seeker/Documents/PMMP/bin/php7/bin/php vendor/bin/phpstan analyze
