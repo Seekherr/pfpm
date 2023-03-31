@@ -17,9 +17,10 @@ use Seeker\pfpm\settings\PfSettings;
 class WorldPathfinder implements IPathfinder {
 
     public function __construct(
-        private World $world,
-        private PfSettings $settings
+		protected World $world,
+        protected PfSettings $settings
     ){}
+
 
 	/**
 	 * @throws PathNotFoundException
@@ -64,6 +65,22 @@ class WorldPathfinder implements IPathfinder {
 		throw new PathNotFoundException();
 	}
 
+	public function getFirstBestNode(Vector3 $from, Vector3 $to): ?PfNode {
+		$mode = $this->getSettings()->getMode();
+		$world = $this->getWorld();
+		$fromNode = NodeCreator::getAsWorldNode($from, $mode, $world);
+		$bestScore = 10000000;
+		$bestNode = null;
+		foreach ($from->sides() as $neighbour) {
+			if (!$this->getSettings()->getRadius()->isWithin($neighbour)) continue;
+			$score = $neighbour->getHeuristicScore($from, $to) + $fromNode->distance($fromNode);
+			if($score > 0 && $score < $bestScore) {
+				$bestScore = $score;
+				$bestNode = NodeCreator::getAsNode($neighbour);
+			}
+		}
+		return $bestNode;
+	}
 
 	/**
      * @return World

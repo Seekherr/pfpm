@@ -7,6 +7,8 @@ namespace Seeker\pfpm;
 use PHPUnit\Framework\TestCase;
 use pocketmine\math\Vector3;
 use Seeker\pfpm\pathfinding\exception\PathNotFoundException;
+use Seeker\pfpm\pathfinding\node\NodeCreator;
+use Seeker\pfpm\pathfinding\node\PfNode;
 use Seeker\pfpm\pathfinding\pathfinder\Pathfinder;
 use Seeker\pfpm\settings\PfMode;
 use Seeker\pfpm\settings\PfSettings;
@@ -21,9 +23,13 @@ class PfTest extends TestCase {
      */
     public function testPathfinding(Radius $radius): void {
         try {
-			$to = new Vector3(29, 29, 29);
-			$from = new Vector3(30, 31, 30);
-			$pathfinder = (new Pathfinder($radius))->pathfind($from, $to);
+			$from = new Vector3(0, 30, 0);
+			$to = new Vector3(15, 15, -15);
+			$targetNode = NodeCreator::getAsNode($to);
+			$path = (new Pathfinder($radius))->pathfind($from, $to);
+			$lastElement = null;
+			foreach ($path as $node) $lastElement = $node;
+			$this->assertSame($lastElement->getHash(), $targetNode->getHash(), "Pathfinder does not return the target node.");
         } catch (PathNotFoundException $exception) {
             $this->fail("Exception caught; " . $exception->getMessage());
         }

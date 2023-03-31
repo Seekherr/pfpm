@@ -42,12 +42,19 @@ class Radius {
         );
     }
 
-	public function getHigherFloors(): array {
-		return [$this->upperX, $this->upperY, $this->upperZ];
-	}
+	public function setReserveSpace(array $reserveSpace): void {
+		if (count($reserveSpace) === 3) {
+			[$x, $y, $z] = [(int) $reserveSpace[0], (int) $reserveSpace[1], (int) $reserveSpace[2]];
+			if (!isset($x) || !isset($y) || !isset($z)) return;
+			$this->upperX += intval($x / 2);
+			$this->lowerX += intval($x / 2);
 
-	public function getLowerFloors(): array {
-		return [$this->lowerX, $this->lowerY, $this->lowerZ];
+			$this->upperY += intval($y / 2);
+			$this->lowerY += intval($y / 2);
+
+			$this->upperZ += intval($z / 2);
+			$this->lowerZ += intval($z / 2);
+		}
 	}
 
     /**

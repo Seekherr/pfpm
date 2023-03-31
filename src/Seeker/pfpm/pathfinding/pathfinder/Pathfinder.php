@@ -19,7 +19,7 @@ use Seeker\pfpm\settings\Radius;
 class Pathfinder implements IPathfinder {
 
     public function __construct(
-        private Radius $radius
+		protected Radius $radius
     ){}
 
 
@@ -62,4 +62,19 @@ class Pathfinder implements IPathfinder {
 		}
 		throw new PathNotFoundException();
     }
+
+	public function getFirstBestNode(Vector3 $from, Vector3 $to): ?PfNode {
+		$fromNode = NodeCreator::getAsNode($from);
+		$bestScore = 10000000;
+		$bestNode = null;
+		foreach ($from->sides() as $neighbour) {
+			if (!$this->radius->isWithin($neighbour)) continue;
+			$score = $neighbour->getHeuristicScore($from, $to) + $fromNode->distance($fromNode);
+			if($score > 0 && $score < $bestScore) {
+				$bestScore = $score;
+				$bestNode = NodeCreator::getAsNode($neighbour);
+			}
+		}
+		return $bestNode;
+	}
 }
