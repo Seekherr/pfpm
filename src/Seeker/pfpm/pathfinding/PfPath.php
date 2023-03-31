@@ -21,7 +21,6 @@ class PfPath {
     public function getPathAsGenerator(): Generator {
         $parent = $this->targetNode->getParentNode();
         if ($parent instanceof PfNode) {
-			var_dump("yo");
             $this->targetNode = $parent;
             yield $this->targetNode->getCoordinates();
         }

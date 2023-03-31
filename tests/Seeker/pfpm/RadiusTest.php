@@ -36,7 +36,7 @@ class RadiusTest extends TestCase {
      * @phpstan-return Radius[]
      */
     public function getRadius(): array {
-		$to = new Vector3(29, 30, 31);
+		$to = new Vector3(15, 16, 15);
 		$from = new Vector3(30, 31, 30);
         $radius = Radius::autoAdjust($from, $to);
 

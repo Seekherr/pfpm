@@ -22,42 +22,36 @@ class Pathfinder implements IPathfinder {
     ){}
 
     /**
-     * @var array<int, int>
+     * @var array<int, <PfNode, PfNode[]>>
      */
-    private array $hashStorage = [];
+    private array $nodeStorage = [];
 
     /**
      * @throws PathNotFoundException
      */
+
     public function pathfind(Vector3 $from, Vector3 $to): PfJob {
-        $time = microtime(true);
-
         try {
-            $fromNode = $this->resolveNode($from);
-            $targetNode = $this->resolveNode($to);
-            unset($this->hashStorage[$targetNode->getHash()]); // hack ;3
-            $this->resolveNodeNeighbours($fromNode);
-            unset($this->hashStorage);
-
-			$stringer = new StringNodeHandler();
-			$_ = $stringer->getCoordsRecursively($fromNode);
-			$stringer->dumpBufferToFile("/home/seeker/Documents/PMMP/buffer_logs/test.txt");
+			$fromNode = $this->resolveNode($from);
+			$targetHash = World::blockHash($to->getFloorX(), $to->getFloorY(), $to->getFloorZ());
+			$this->resolveNodeNeighbours($fromNode);
         } catch (OutOfRadiusException $exception) {
             throw new PathNotFoundException($exception->getMessage());
         }
 
-		return new PfJob($fromNode, $targetNode);
+		return new PfJob($fromNode, $this->nodeStorage[$targetHash][0], $this->nodeStorage);
     }
 
     /**
      * @throws OutOfRadiusException
      */
     private function resolveNode(Vector3 $nodeVec): PfNode {
+		var_dump($this->nodeStorage);
         if (!$this->radius->isWithin($nodeVec)) throw new OutOfRadiusException();
         $hash = World::blockHash($nodeVec->getFloorX(), $nodeVec->getFloorY(), $nodeVec->getFloorZ());
         $node = new PfNode($hash, $nodeVec, 0.1);
-        if (!isset($this->hashStorage[$hash])) {
-            $this->hashStorage[$node->getHash()] = 0;
+        if (!isset($this->nodeStorage[$hash])) {
+            $this->nodeStorage[$node->getHash()] = [$node, []];
         }
         return $node; // Un-traversable nodes will still be returned, to allow their neighbours to be checked.
     }
@@ -66,18 +60,17 @@ class Pathfinder implements IPathfinder {
      * @throws OutOfRadiusException
      */
     private function resolveNodeNeighbours(PfNode $node): void {
-        $neighbours = [];
         foreach($node->getCoordinates()->sides() as $neighbourVector) {
             if ($this->radius->isWithin($neighbourVector)) {
-                if (isset($this->hashStorage[World::blockHash($neighbourVector->getFloorX(), $neighbourVector->getFloorY(), $neighbourVector->getFloorZ())])) continue;
+				if (isset($this->nodeStorage[World::blockHash($neighbourVector->getFloorX(), $neighbourVector->getFloorY(), $neighbourVector->getFloorZ())])) continue;
                 $neighbourNode = $this->resolveNode($neighbourVector);
-                $neighbours[] = $neighbourNode;
+				$this->nodeStorage[$node->getHash()][1][] = $neighbourNode->getHash();
             }
         }
 
-        foreach ($neighbours as $neighbour) {
-            $this->resolveNodeNeighbours($neighbour);
-            $node->addNeighbour($neighbour);
-        }
+		foreach ($this->nodeStorage[$node->getHash()][1] as $neighbour) {
+			if (!isset($this->nodeStorage[$neighbour])) continue;
+			$this->resolveNodeNeighbours($this->nodeStorage[$neighbour][0]);
+		}
     }
 }

@@ -17,10 +17,15 @@ class PfJob {
     9. If the successor is already on the open list, and the new g-score is higher than the existing g-score for the node, skip this successor and continue with the next one.
      */
 
+	/**
+	 * @param PfNode $fromNode
+	 * @param PfNode $targetNode
+	 * @param array<int, <PfNode, PfNode[]>> $nodeStorage
+	 */
     public function __construct(
-        // 1. Define the start node and the end node
         private PfNode $fromNode,
-        private PfNode $targetNode
+        private PfNode $targetNode,
+		private array $nodeStorage
     ){}
 
     /**
@@ -28,50 +33,25 @@ class PfJob {
      * @throws PathNotFoundException
      */
     public function getPath(): PfPath {
+		$time = microtime(true);
         $toEval = new ReversePriorityQueue();
         $toEval->insert($this->fromNode, ($this->fromNode->getHeuristicScore($this->fromNode->getCoordinates(), $this->targetNode->getCoordinates())));
 		while (!$toEval->isEmpty()) {
             /** @var PfNode $closestNode */
             $closestNode = $toEval->extract();
-            $currentNode = $this->browseNeighboursOfNode($closestNode);
-			$stringer = new StringNodeHandler();
-            if ($currentNode instanceof PfNode && $currentNode->getHash() === $this->targetNode->getHash()) {
-				$stringer->getNode($currentNode);
-                return new PfPath($currentNode);
-            }
+			if ($closestNode->getHash() === $this->targetNode->getHash()) {
+				var_dump("Time taken:" . microtime(true) - $time);
+				return new PfPath($closestNode);
+			}
+			foreach ($this->nodeStorage[$closestNode->getHash()][1] as $neighbour) {
+				$node = $this->nodeStorage[$neighbour][0];
+				if (isset($node) && $node instanceof PfNode) {
+					$node->setParentNode($closestNode);
+					$node->setHeuristicScore($node->getHeuristicScore($this->fromNode->getCoordinates(), $this->targetNode->getCoordinates()) + $closestNode->getCoordinates()->distance($node->getCoordinates()));
+					$toEval->insert($node, $node->getHeuristicScore($this->fromNode->getCoordinates(), $this->targetNode->getCoordinates()));
+				}
+			}
         }
-        throw new PathNotFoundException("Failed during PfJob.");
-    }
-
-
-    public function browseNeighboursOfNode(PfNode $node): ?PfNode {
-        if ($node->getHash() === $this->targetNode->getHash()) {
-            return $node;
-        }
-
-        $neighbours = [];
-        foreach ($node->getNeighbours() as $neighbourNode) {
-/*            $neighbourScore = $node->getHeuristicScore(
-                    $this->fromNode->getCoordinates(),
-                    $this->targetNode->getCoordinates()
-                );
-			var_dump($node->getHeuristicScore($this->fromNode->getCoordinates(), $this->targetNode->getCoordinates()));
-			var_dump($neighbourScore < $node->getHeuristicScore($this->fromNode->getCoordinates(), $this->targetNode->getCoordinates()));
-            if ($neighbourScore < $node->getHeuristicScore($this->fromNode->getCoordinates(), $this->targetNode->getCoordinates())) {
-                $neighbours[] = $neighbourNode;
-            }*/ // TODO: A*
-			$neighbours[] = $neighbourNode;
-        }
-
-		foreach($neighbours as $neighbour) {
-            $neighbour->setHeuristicScore($neighbour->getHeuristicScore($this->fromNode->getCoordinates(), $this->targetNode->getCoordinates()) + $node->getCoordinates()->distance($neighbour->getCoordinates()));
-            $neighbour->setParentNode($node);
-            $value = $this->browseNeighboursOfNode($neighbour);
-            if ($value instanceof PfNode && $value->getHash() === $this->targetNode->getHash()) {
-                return $value;
-            }
-        }
-
-        return null;
-    }
+		throw new PathNotFoundException("Failed during PfJob.");
+	}
 }

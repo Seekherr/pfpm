@@ -12,11 +12,6 @@ class PfNode {
         private float $score,
     ){}
 
-	/**
-	 * @var PfNode[]
-	 */
-	private array $neighbours = [];
-
 	private ?PfNode $parentNode = null;
 
 	private ?float $heuristicScore = null;
@@ -55,17 +50,6 @@ class PfNode {
      */
     public function getScore(): float {
         return $this->score;
-    }
-
-    public function addNeighbour(PfNode $node): void {
-        $this->neighbours[] = $node;
-    }
-
-    /**
-     * @return PfNode[]
-     */
-    public function getNeighbours(): array {
-        return $this->neighbours;
     }
 
     /**
