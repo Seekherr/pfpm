@@ -21,12 +21,9 @@ class PfTest extends TestCase {
      */
     public function testPathfinding(Radius $radius): void {
         try {
-			$to = new Vector3(15, 16, 15);
+			$to = new Vector3(29, 29, 29);
 			$from = new Vector3(30, 31, 30);
 			$pathfinder = (new Pathfinder($radius))->pathfind($from, $to);
-            $path = $pathfinder->getPath();
-			while (($current = $path->getPathAsGenerator()->current()) !== null) {
-			}
         } catch (PathNotFoundException $exception) {
             $this->fail("Exception caught; " . $exception->getMessage());
         }

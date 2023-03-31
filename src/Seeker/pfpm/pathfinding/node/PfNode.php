@@ -7,28 +7,41 @@ use pocketmine\math\Vector3;
 class PfNode {
 
     public function __construct(
-        private int $hash,
-        private Vector3 $coordinates,
+		private int $hash,
+        private int $x,
+		private int $y,
+		private int $z,
         private float $score,
     ){}
 
-	private ?PfNode $parentNode = null;
+	private ?PfNode $childNode = null;
 
 	private ?float $heuristicScore = null;
 
-    /**
-     * @return int
-     */
-    public function getHash(): int {
-        return $this->hash;
-    }
+	public function getHash(): int {
+		return $this->hash;
+	}
 
-    /**
-     * @return Vector3
-     */
-    public function getCoordinates(): Vector3 {
-        return $this->coordinates;
-    }
+	/**
+	 * @return int
+	 */
+	public function getX(): int {
+		return $this->x;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getY(): int {
+		return $this->y;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getZ(): int {
+		return $this->z;
+	}
 
     public function setHeuristicScore(float $heuristicScore): void {
         $this->heuristicScore = $heuristicScore;
@@ -41,8 +54,9 @@ class PfNode {
      * @return float
      */
     public function getHeuristicScore(Vector3 $from, Vector3 $to): float {
+		$vec = new Vector3($this->getX(), $this->getY(), $this->getZ());
         return $this->heuristicScore ??
-            ($from->distance($this->getCoordinates()) + $to->distance($this->getCoordinates())) + $this->getScore();
+            ($from->distance($vec) + $to->distance($vec)) + $this->getScore();
     }
 
     /**
@@ -52,17 +66,21 @@ class PfNode {
         return $this->score;
     }
 
-    /**
-     * @return null|PfNode
-     */
-    public function getParentNode(): ?PfNode {
-        return $this->parentNode;
-    }
+	public function equals(PfNode $node): bool {
+		return (
+			$node->getX() === $this->getX() &&
+			$node->getY() === $this->getY() &&
+			$node->getZ() === $this->getZ()
+		);
+	}
 
-    /**
-     * @param PfNode $parentNode
-     */
-    public function setParentNode(PfNode $parentNode): void {
-        $this->parentNode = $parentNode;
-    }
+
+	/**
+	 * pmmp ripoff xD
+	 * @param PfNode $node
+	 * @return float
+	 */
+	public function distance(PfNode $node): float {
+		return sqrt((($this->getX() - $node->getX()) ** 2) + (($this->getY() - $node->getY()) ** 2) + (($this->getZ() - $node->getZ()) ** 2));
+	}
 }

@@ -7,10 +7,25 @@ use pocketmine\math\Vector3;
 class Radius {
 
 
+	private int $upperX;
+	private int $upperY;
+	private int $upperZ;
+
+	private int $lowerX;
+	private int $lowerY;
+	private int $lowerZ;
+
     public function __construct(
-        private Vector3 $upper,
-        private Vector3 $lower
-    ){}
+		Vector3 $upper,
+		Vector3 $lower
+    ){
+		$this->upperX = $upper->getFloorX();
+		$this->upperY = $upper->getFloorY();
+		$this->upperZ = $upper->getFloorZ();
+		$this->lowerX = $lower->getFloorX();
+		$this->lowerY = $lower->getFloorY();
+		$this->lowerZ = $lower->getFloorZ();
+	}
 
     public static function autoAdjust(Vector3 $from, Vector3 $to): Radius {
         $upperX = max($from->getFloorX(), $to->getFloorX());
@@ -27,13 +42,13 @@ class Radius {
         );
     }
 
-    public function getHigher(): Vector3 {
-        return $this->upper;
-    }
+	public function getHigherFloors(): array {
+		return [$this->upperX, $this->upperY, $this->upperZ];
+	}
 
-    public function getLower(): Vector3 {
-        return $this->lower;
-    }
+	public function getLowerFloors(): array {
+		return [$this->lowerX, $this->lowerY, $this->lowerZ];
+	}
 
     /**
      * Checks if a vector is within the radius.
@@ -41,13 +56,16 @@ class Radius {
      * @return bool
      */
     public function isWithin(Vector3 $vector3): bool {
+		$x = $vector3->getFloorX();
+		$y = $vector3->getFloorY();
+		$z = $vector3->getFloorZ();
         return (
-            $vector3->getFloorX() <= $this->getHigher()->getFloorX() &&
-            $vector3->getFloorY() <= $this->getHigher()->getFloorY() &&
-            $vector3->getFloorZ() <= $this->getHigher()->getFloorZ() &&
-            $vector3->getFloorX() >= $this->getLower()->getFloorX() &&
-            $vector3->getFloorY() >= $this->getLower()->getFloorY() &&
-            $vector3->getFloorZ() >= $this->getLower()->getFloorZ()
+            $x <= $this->upperX &&
+            $y <= $this->upperY &&
+            $z <= $this->upperZ &&
+            $x >= $this->lowerX &&
+            $y >= $this->lowerY &&
+            $z >= $this->lowerZ
         );
     }
 }
