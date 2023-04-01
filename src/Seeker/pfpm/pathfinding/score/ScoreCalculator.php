@@ -4,7 +4,7 @@ namespace Seeker\pfpm\pathfinding\score;
 
 use pocketmine\block\Air;
 use pocketmine\block\Block;
-use Seeker\pfpm\settings\PfMode;
+use Seeker\pfpm\pathfinding\settings\PfMode;
 
 class ScoreCalculator {
     const DISALLOWED = -100.0;

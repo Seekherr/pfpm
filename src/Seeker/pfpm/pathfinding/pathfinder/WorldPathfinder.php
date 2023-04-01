@@ -7,12 +7,11 @@ namespace Seeker\pfpm\pathfinding\pathfinder;
 use pocketmine\math\Vector3;
 use pocketmine\utils\ReversePriorityQueue;
 use pocketmine\world\World;
-use Seeker\pfpm\pathfinding\exception\OutOfRadiusException;
 use Seeker\pfpm\pathfinding\exception\PathNotFoundException;
 use Seeker\pfpm\pathfinding\node\NodeCreator;
 use Seeker\pfpm\pathfinding\node\PfNode;
 use Seeker\pfpm\pathfinding\score\ScoreCalculator;
-use Seeker\pfpm\settings\PfSettings;
+use Seeker\pfpm\pathfinding\settings\PfSettings;
 
 class WorldPathfinder implements IPathfinder {
 
@@ -73,10 +72,11 @@ class WorldPathfinder implements IPathfinder {
 		$bestNode = null;
 		foreach ($from->sides() as $neighbour) {
 			if (!$this->getSettings()->getRadius()->isWithin($neighbour)) continue;
-			$score = $neighbour->getHeuristicScore($from, $to) + $fromNode->distance($fromNode);
+			$neighbourNode = NodeCreator::getAsWorldNode($neighbour, $mode, $world);
+			$score = $neighbourNode->getHeuristicScore($from, $to) + $fromNode->distance($fromNode);
 			if($score > 0 && $score < $bestScore) {
 				$bestScore = $score;
-				$bestNode = NodeCreator::getAsNode($neighbour);
+				$bestNode = $neighbourNode;
 			}
 		}
 		return $bestNode;

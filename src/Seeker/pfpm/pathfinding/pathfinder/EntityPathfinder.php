@@ -4,21 +4,27 @@ declare(strict_types=1);
 
 namespace Seeker\pfpm\pathfinding\pathfinder;
 
+use pocketmine\entity\Entity;
 use pocketmine\entity\Living;
+use pocketmine\entity\Location;
 use pocketmine\math\Vector3;
-use Seeker\pfpm\pathfinding\exception\PathNotFoundException;
+use pocketmine\world\Position;
+use pocketmine\world\World;
 use Seeker\pfpm\pathfinding\node\PfNode;
 use Seeker\pfpm\pathfinding\pathfinder\utils\VectorUtils;
-use Seeker\pfpm\settings\PfSettings;
-use Seeker\pfpm\settings\Radius;
+use Seeker\pfpm\pathfinding\settings\PfSettings;
+use Seeker\pfpm\pathfinding\settings\Radius;
 
+/**
+ * TODO: Make it dependency inject-able with entities.
+ */
 class EntityPathfinder extends WorldPathfinder {
 
 	public function __construct(
 		PfSettings $settings,
-		private Living $entity
+		World $world
 	){
-		parent::__construct($this->entity->getWorld(), $settings);
+		parent::__construct($world, $settings);
 		$this->radius = $settings->getRadius();
 	}
 
@@ -26,8 +32,8 @@ class EntityPathfinder extends WorldPathfinder {
 
 	private ?Vector3 $target = null;
 
-	public function entityPathfind(Vector3 $target): ?PfNode {
-		$entityPos = $this->entity->getPosition()->asVector3();
+	public function entityPathfind(Position $from, Vector3 $target): ?PfNode {
+		$entityPos = $from->asVector3();
 		if ($this->target === null || !VectorUtils::equalsFloor($this->target, $target)) {
 			$this->target = $target;
 			if (!$this->radius->isWithin($target)) {
@@ -44,6 +50,7 @@ class EntityPathfinder extends WorldPathfinder {
 
 		return $this->getFirstBestNode($entityPos, $this->target);
 	}
+
 
 	/**
 	 * So we don't have to keep reinitializing the radius (expensive)

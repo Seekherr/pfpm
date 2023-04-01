@@ -6,7 +6,7 @@ namespace Seeker\pfpm;
 
 use PHPUnit\Framework\TestCase;
 use pocketmine\math\Vector3;
-use Seeker\pfpm\settings\Radius;
+use Seeker\pfpm\pathfinding\settings\Radius;
 
 class RadiusTest extends TestCase {
 

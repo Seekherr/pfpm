@@ -8,11 +8,8 @@ use PHPUnit\Framework\TestCase;
 use pocketmine\math\Vector3;
 use Seeker\pfpm\pathfinding\exception\PathNotFoundException;
 use Seeker\pfpm\pathfinding\node\NodeCreator;
-use Seeker\pfpm\pathfinding\node\PfNode;
 use Seeker\pfpm\pathfinding\pathfinder\Pathfinder;
-use Seeker\pfpm\settings\PfMode;
-use Seeker\pfpm\settings\PfSettings;
-use Seeker\pfpm\settings\Radius;
+use Seeker\pfpm\pathfinding\settings\Radius;
 
 class PfTest extends TestCase {
 

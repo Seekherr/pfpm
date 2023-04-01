@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Seeker\pfpm\settings;
+namespace Seeker\pfpm\pathfinding\settings;
 
 use Seeker\pfpm\pathfinding\score\ScoreRegistery;
 

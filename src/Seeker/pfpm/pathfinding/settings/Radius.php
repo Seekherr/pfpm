@@ -1,6 +1,6 @@
 <?php
 
-namespace Seeker\pfpm\settings;
+namespace Seeker\pfpm\pathfinding\settings;
 
 use pocketmine\math\Vector3;
 
